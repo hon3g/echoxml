@@ -18,7 +18,7 @@ func main() {
 
 func echoHandler() http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		log.Println("Handling request from", req.RemoteAddr)
+		log.Println("handling request from", req.RemoteAddr, req.UserAgent())
 		handleResponseHeaders(rw, req)
 		if _, err := io.Copy(rw, req.Body); err != nil {
 			log.Println(err)
