@@ -20,10 +20,18 @@ func echoHandler() http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		log.Println("handling request from", req.RemoteAddr, req.UserAgent())
 		handleResponseHeaders(rw, req)
-		if _, err := io.Copy(rw, req.Body); err != nil {
-			log.Println(err)
-		}
+		handleResponseBody(rw, req)
 	})
+}
+
+func handleResponseBody(rw http.ResponseWriter, req *http.Request) {
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		log.Println(err)
+	}
+	if _, err := rw.Write(body); err != nil {
+		log.Println(err)
+	}
 }
 
 func handleResponseHeaders(rw http.ResponseWriter, req *http.Request) {
