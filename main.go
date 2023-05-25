@@ -24,16 +24,6 @@ func echoHandler() http.Handler {
 	})
 }
 
-func handleResponseBody(rw http.ResponseWriter, req *http.Request) {
-	body, err := io.ReadAll(req.Body)
-	if err != nil {
-		log.Println(err)
-	}
-	if _, err := rw.Write(body); err != nil {
-		log.Println(err)
-	}
-}
-
 func handleResponseHeaders(rw http.ResponseWriter, req *http.Request) {
 	for key, values := range req.Header {
 		for _, val := range values {
@@ -51,6 +41,16 @@ func handleResponseHeaders(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Query-String", req.URL.Query().Encode())
 	rw.Header().Set("Server-Address", req.Host)
 	rw.Header().Set("Client-Address", req.RemoteAddr)
+}
+
+func handleResponseBody(rw http.ResponseWriter, req *http.Request) {
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		log.Println(err)
+	}
+	if _, err := rw.Write(body); err != nil {
+		log.Println(err)
+	}
 }
 
 func startServer(ctx context.Context) {
