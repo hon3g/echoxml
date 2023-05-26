@@ -26,7 +26,12 @@ func echoHandler() http.Handler {
 func handleResponseHeaders(rw http.ResponseWriter, req *http.Request) {
 	for key, values := range req.Header {
 		for _, val := range values {
-			rw.Header().Set("X-Ingress-Proxy-Kafka-"+key, val)
+			newKey := "X-Ingress-Proxy-Kafka-" + key
+			if rw.Header().Get(newKey) == "" {
+				rw.Header().Set(newKey, val)
+			} else {
+				rw.Header().Add(newKey, val)
+			}
 		}
 	}
 	rw.Header().Set("Content-Type", "application/xml")
@@ -36,6 +41,10 @@ func handleResponseBody(rw http.ResponseWriter, req *http.Request) {
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
 		log.Println(err)
+	}
+	if string(body) == "400" {
+		rw.WriteHeader(http.StatusBadRequest)
+		body = []byte("400 Bad Request")
 	}
 	if _, err := rw.Write(body); err != nil {
 		log.Println(err)
