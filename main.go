@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 )
 
 func main() {
@@ -27,20 +26,10 @@ func echoHandler() http.Handler {
 func handleResponseHeaders(rw http.ResponseWriter, req *http.Request) {
 	for key, values := range req.Header {
 		for _, val := range values {
-			rw.Header().Set("Echo-"+key, val)
-
-			if strings.HasPrefix(key, "X-Ingress-Proxy-Kafka-") {
-				rw.Header().Set(key, val)
-			}
+			rw.Header().Set("X-Ingress-Proxy-Kafka-"+key, val)
 		}
 	}
 	rw.Header().Set("Content-Type", "application/xml")
-	rw.Header().Set("Http-Version", req.Proto)
-	rw.Header().Set("Method", req.Method)
-	rw.Header().Set("Full-Path", req.URL.Path)
-	rw.Header().Set("Query-String", req.URL.Query().Encode())
-	rw.Header().Set("Server-Address", req.Host)
-	rw.Header().Set("Client-Address", req.RemoteAddr)
 }
 
 func handleResponseBody(rw http.ResponseWriter, req *http.Request) {
