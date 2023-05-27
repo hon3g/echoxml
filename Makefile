@@ -6,7 +6,7 @@ clean:
 	kubectl config set-context --current --namespace $(NAMESPACE)
 
 up: clean
-	helm install echoxml helm --wait
+	helm install echoxml helm/echoxml --wait
 	kubectl get pods
 
 forward-port: close-port

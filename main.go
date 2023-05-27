@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"log"
 	"net/http"
@@ -17,7 +18,8 @@ func main() {
 
 func echoHandler() http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		log.Println("handling request from", req.RemoteAddr, req.UserAgent())
+		b, _ := json.Marshal(req.Header)
+		log.Println(req.RemoteAddr, string(b))
 		handleResponseHeaders(rw, req)
 		handleResponseBody(rw, req)
 	})
@@ -26,11 +28,11 @@ func echoHandler() http.Handler {
 func handleResponseHeaders(rw http.ResponseWriter, req *http.Request) {
 	for key, values := range req.Header {
 		for _, val := range values {
-			newKey := "X-Ingress-Proxy-Kafka-" + key
-			if rw.Header().Get(newKey) == "" {
-				rw.Header().Set(newKey, val)
+			echoKey := "X-Ingress-Proxy-Kafka-" + key
+			if rw.Header().Get(echoKey) == "" {
+				rw.Header().Set(echoKey, val)
 			} else {
-				rw.Header().Add(newKey, val)
+				rw.Header().Add(echoKey, val)
 			}
 		}
 	}
@@ -42,7 +44,7 @@ func handleResponseBody(rw http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-	if string(body) == "400" {
+	if string(body[:3]) == "400" {
 		rw.WriteHeader(http.StatusBadRequest)
 		body = []byte("400 Bad Request")
 	}
