@@ -18,8 +18,11 @@ func main() {
 
 func echoHandler() http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		b, _ := json.Marshal(req.Header)
-		log.Println(req.RemoteAddr, string(b))
+		header, err := json.Marshal(req.Header)
+		if err != nil {
+			log.Println("error marshaling request header:", err)
+		}
+		log.Println(req.RemoteAddr, string(header))
 		handleResponseHeaders(rw, req)
 		handleResponseBody(rw, req)
 	})
@@ -42,14 +45,14 @@ func handleResponseHeaders(rw http.ResponseWriter, req *http.Request) {
 func handleResponseBody(rw http.ResponseWriter, req *http.Request) {
 	body, err := io.ReadAll(req.Body)
 	if err != nil {
-		log.Println(err)
+		log.Println("error reading request body:", err)
 	}
 	if string(body[:3]) == "400" {
 		rw.WriteHeader(http.StatusBadRequest)
 		body = []byte("400 Bad Request")
 	}
 	if _, err := rw.Write(body); err != nil {
-		log.Println(err)
+		log.Println("error writing request body:", err)
 	}
 }
 
@@ -61,7 +64,7 @@ func startServer(ctx context.Context) {
 	go func() {
 		<-ctx.Done()
 		if err := h.Shutdown(ctx); err != nil {
-			log.Println(err)
+			log.Println("error shutting down server:", err)
 		}
 	}()
 	if err := h.ListenAndServe(); err != nil {
